@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora de Lançamento de Projétil</title>
+    <style>
+        body {
+            background: url('planodefundo.jpg');
+            background-size: cover;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            display: flex;
+        }
+
+        #input-container {
+            background-color: rgba(0, 255, 64, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+        }
+
+        #trajectory-container {
+            background-color: rgba(255, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+        }
+
+        #trajectoryCanvas {
+            width: 400px;
+            height: 400px;
+            border: 1px solid #000;
+        }
+
+        #values-container {
+            background-color: rgba(255, 0, 191, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+        }
+
+        #values {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Lançamento de Projétil</h1>
+
+    <div id="container">
+        <div id="input-container">
+            <label for="velocity">Velocidade Inicial (m/s):</label>
+            <input type="number" id="velocity" value="10"><br><br>
+
+            <label for="angle">Ângulo de Lançamento (graus):</label>
+            <input type="number" id="angle" value="45"><br><br>
+
+            <button onclick="calculateTrajectory()">Calcular</button><br><br>
+
+            <div id="results">
+                <h2>Resultados:</h2>
+                <p>Alcance: <span id="range">0</span> metros</p>
+                <p>Altura Máxima: <span id="maxHeight">0</span> metros</p>
+                <p>Comprimento da Trajetória: <span id="trajectoryLength">0</span> metros</p>
+            </div>
+        </div>
+
+        <div id="trajectory-container">
+            <canvas id="trajectoryCanvas"></canvas>
+        </div>
+
+        <div id="values-container">
+            <h2>Valores Instantâneos:</h2>
+            <p id="values">vx: 0 m/s<br>vy: 0 m/s<br>G: -9.8 m/s²<br>T: 0 s<br>Y: 0 m<br>X: 0 m</p>
+        </div>
+    </div>
+
+    <script>
+        function calculateTrajectory() {
+            const velocity = parseFloat(document.getElementById("velocity").value);
+            const angle = parseFloat(document.getElementById("angle").value);
+            const g = 9.8;
+
+            const radians = (angle * Math.PI) / 180;
+            const vy0 = velocity * Math.sin(radians);
+            const vx0 = velocity * Math.cos(radians);
+
+            const tTotal = (2 * vy0) / g;
+
+            const canvas = document.getElementById("trajectoryCanvas");
+            const ctx = canvas.getContext("2d");
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+
+            let xPrev = 0;
+            let yPrev = canvas.height;
+
+            let range = 0;
+            let maxHeight = 0;
+
+            for (let t = 0; t <= tTotal; t += 0.01) {
+                const xVal = vx0 * t;
+                const yVal = (vy0 * t) - (0.5 * g * t * t);
+                ctx.lineTo(xVal, canvas.height - yVal);
+                const instantValues = `vx: ${vx0.toFixed(2)} m/s\nvy: ${(vy0 - g * t).toFixed(2)} m/s\nG: ${g} m/s²\nT: ${t.toFixed(2)} s\nY: ${(vy0 * t - 0.5 * g * t * t).toFixed(2)} m\nX: ${xVal.toFixed(2)} m`;
+                document.getElementById("values").textContent = instantValues;
+
+                if (yVal > maxHeight) {
+                    maxHeight = yVal;
+                }
+
+                xPrev = xVal;
+                yPrev = yVal;
+            }
+            ctx.stroke();
+            range = xPrev;
+            document.getElementById("range").textContent = range.toFixed(2);
+            document.getElementById("maxHeight").textContent = maxHeight.toFixed(2);
+
+            const trajectoryLength = Math.sqrt(range * 2 + maxHeight * 2);
+            document.getElementById("trajectoryLength").textContent = trajectoryLength.toFixed(2);
+        }
+    </script>
+</body>
+</html>
